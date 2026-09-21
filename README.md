@@ -45,8 +45,8 @@ the next one to read, so you can run them in order (`01` → `02` → `03`
 
 ## Setup
 
-```bash
-git clone <your-repo-url>
+```
+git clone <repo-url>
 cd CreditWise
 pip install -r requirements.txt
 ```
@@ -121,6 +121,4 @@ Three baseline classifiers are compared: Logistic Regression, KNN, and
 Gaussian Naive Bayes, using precision, recall, F1, accuracy, and the
 confusion matrix.
 
-## License
 
-Add a license of your choice (MIT is a common default for portfolio projects).

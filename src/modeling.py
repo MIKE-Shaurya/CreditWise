@@ -3,12 +3,6 @@ modeling.py
 -----------
 Train/test splitting, scaling, model training, and evaluation for the
 CreditWise loan approval model.
-
-Change vs. the original notebook: `train_test_split` now uses
-`stratify=y`. Loan_Approved is imbalanced (more "No" than "Yes"), and
-without stratification the train/test split can end up with a
-noticeably different approval rate in each split, making the
-train/test metrics less comparable run to run.
 """
 
 from __future__ import annotations

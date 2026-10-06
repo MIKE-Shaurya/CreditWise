@@ -2,20 +2,6 @@
 preprocessing.py
 -----------------
 Data loading and cleaning utilities for the CreditWise loan approval model.
-
-Responsibilities:
-    * Load the raw CSV
-    * Drop identifier columns that carry no predictive signal
-    * Impute missing values (mean for numeric, mode for categorical)
-    * Encode categorical columns (one-hot for nominal, label-encode for
-      the ordinal/binary ones)
-
-Bugs fixed vs. the original notebook:
-    * `Applicant_ID` is now dropped *before* imputation/encoding instead of
-      after, so it never wastes a slot in the numeric imputer.
-    * The old code separated numeric/categorical columns once, at the top,
-      and reused that list later even after columns had changed shape.
-      Here each function recomputes what it needs, so it can't go stale.
 """
 
 from __future__ import annotations
@@ -27,7 +13,7 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 ID_COLUMNS = ["Applicant_ID"]
 TARGET = "Loan_Approved"
 
-# Nominal categorical columns -> one-hot encoded (no natural order)
+
 ONE_HOT_COLS = [
     "Employment_Status",
     "Marital_Status",
@@ -37,7 +23,6 @@ ONE_HOT_COLS = [
     "Employer_Category",
 ]
 
-# Ordinal / binary columns -> label encoded
 LABEL_ENCODE_COLS = ["Education_Level", TARGET]
 
 

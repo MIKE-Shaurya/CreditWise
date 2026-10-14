@@ -1,11 +1,4 @@
-"""
-Streamlit front end for CreditWise. Talks to the FastAPI service over HTTP,
-so it needs nothing from src/ and no model files.
 
-    streamlit run app/streamlit_app.py
-
-Set API_URL if the API isn't at http://localhost:8000.
-"""
 
 import os
 

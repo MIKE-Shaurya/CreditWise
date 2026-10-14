@@ -32,7 +32,7 @@ def add_affordability_features(df: pd.DataFrame) -> pd.DataFrame:
     more than any single raw column on its own.
     """
     df = df.copy()
-    df["Loan_to_Income_Ratio"] = df["Loan_Amount"] / (df["Total_Income"] + EPS)   .
+    df["Loan_to_Income_Ratio"] = df["Loan_Amount"] / (df["Total_Income"] + EPS)
     df["Estimated_EMI"] = df["Loan_Amount"] / df["Loan_Term"].replace(0, np.nan)
     df["Estimated_EMI"] = df["Estimated_EMI"].fillna(df["Estimated_EMI"].mean())
 

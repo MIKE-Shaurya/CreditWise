@@ -24,6 +24,9 @@ data/processed/*.csv
 !data/raw/README.md
 !data/processed/README.md
 
+# --- Trained models (derived from the local dataset) ---
+models/*.joblib
+
 # --- OS / editor junk ---
 .DS_Store
 Thumbs.db

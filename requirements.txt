@@ -4,3 +4,5 @@ scikit-learn
 seaborn
 matplotlib
 jupyter
+-r requirements-api.txt
+-r requirements-ui.txt

@@ -16,20 +16,35 @@ details.
 - [Model performance](#model-performance)
 - [Making a prediction](#making-a-prediction)
 - [Models](#models)
+- [API and web app](#api-and-web-app)
+- [Run with Docker](#run-with-docker)
 
 ## Project structure
 
 ```
 CreditWise/
 ├── README.md
-├── requirements.txt
+├── requirements.txt              # everything (notebooks + API + UI)
+├── requirements-api.txt          # what the API container installs
+├── requirements-ui.txt           # what the Streamlit container installs
+├── docker-compose.yml
+├── docker/
+│   ├── Dockerfile.api
+│   └── Dockerfile.ui
 ├── data/
 │   ├── raw/                     # put loan_approval_data.csv here
 │   └── processed/                # cleaned/engineered CSVs land here
+├── models/                       # trained model bundle lands here
+├── api/
+│   └── main.py                   # FastAPI service
+├── app/
+│   └── streamlit_app.py          # Streamlit front end (calls the API)
 ├── src/
 │   ├── preprocessing.py          # load, clean, impute, encode
 │   ├── feature_engineering.py    # engineered features
-│   └── modeling.py               # train/test split, models, metrics
+│   ├── modeling.py               # train/test split, models, metrics
+│   ├── train.py                  # train + save the model bundle
+│   └── inference.py              # one applicant -> features -> prediction
 └── notebooks/
     ├── 01_data_preprocessing.ipynb
     ├── 02_eda.ipynb
@@ -120,5 +135,73 @@ come back as `1` (approved) / `0` (not approved) rather than `Yes`/`No`.
 Three baseline classifiers are compared: Logistic Regression, KNN, and
 Gaussian Naive Bayes, using precision, recall, F1, accuracy, and the
 confusion matrix.
+
+## API and web app
+
+The served model is Logistic Regression trained on the engineered
+features (`src/train.py`). Training saves one file,
+`models/creditwise_model.joblib`, containing the model, the scaler, the
+final feature order and the category lists, which is everything the API
+needs to score a single new applicant.
+
+Run locally, from the repo root:
+
+```
+pip install -r requirements.txt
+python -m src.train                          # needs data/raw/loan_approval_data.csv
+uvicorn api.main:app --reload                # http://localhost:8000/docs
+streamlit run app/streamlit_app.py           # http://localhost:8501
+```
+
+| Endpoint | What it does |
+|---|---|
+| `GET /health` | Liveness check, reports whether a model is loaded |
+| `GET /options` | Allowed values for each categorical field (from the training data) |
+| `GET /model-info` | Model name, training time, test metrics |
+| `POST /predict` | Score one application, returns `approved` and `approval_probability` |
+
+Example request:
+
+```
+curl -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d '{
+  "Applicant_Income": 5000, "Coapplicant_Income": 0, "Age": 35, "Dependents": 1,
+  "Credit_Score": 700, "Existing_Loans": 1, "DTI_Ratio": 0.3, "Savings": 10000,
+  "Collateral_Value": 20000, "Loan_Amount": 15000, "Loan_Term": 36,
+  "Employment_Status": "Salaried", "Marital_Status": "Married",
+  "Loan_Purpose": "Personal", "Property_Area": "Urban", "Gender": "Male",
+  "Employer_Category": "Private", "Education_Level": "Graduate"
+}'
+```
+
+Call `GET /options` to see the exact category spellings your dataset
+uses; an unknown value returns a 422 listing the allowed ones. The
+Streamlit app fills its dropdowns from that same endpoint.
+
+## Run with Docker
+
+The compose file runs two containers, `api` (port 8000) and `ui`
+(port 8501), plus a one-off `train` job.
+
+```
+# 1. Put loan_approval_data.csv in data/raw/, then train inside Docker
+docker compose run --rm train
+
+# 2. Start the API and the web app
+docker compose up --build
+```
+
+Then open http://localhost:8501 for the app or http://localhost:8000/docs
+for the API docs.
+
+Notes:
+
+- The model is mounted into the API container from `./models`, not baked
+  into the image. After retraining, the API picks up the new file
+  automatically, with no restart needed.
+- Train with `docker compose run --rm train` rather than locally. A model
+  pickled with one scikit-learn version can misbehave when loaded by
+  another, and this way both sides use the same image.
+- If you start the stack before training, the app shows a "no trained
+  model" message instead of crashing. Train, then refresh the page.
 
 
